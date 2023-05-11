@@ -1,0 +1,10 @@
+# This file is put alongside the KiCad project files so will can be used
+# when running `kibot` without any options from this directory.
+kibot:
+  version: 1
+
+import:
+  - file: ../PCB-workflows/kibot/development.yaml
+  # Import the project config explicitly, so the PCB-workflows submodule
+  # does not need to hardcode its path.
+  - file: ../kibot/kibot-project-config.yaml

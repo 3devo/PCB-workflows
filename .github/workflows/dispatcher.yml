@@ -1,0 +1,239 @@
+# Intended to be called for push branch, push tags and pull_request
+# events. Actions to be taken are decided based on the triggering event.
+#
+# Should be called with secrets: inherit
+name: Generic workflow for PCB design repositories
+
+on:
+  workflow_call:
+    inputs:
+      project-subdir:
+        description: Directory (within project repo) containing kicad project files
+        type: string
+        default: 'PCB'
+      workflows-subdir:
+        description: Directory (within project repo) containing PCB-workflows submodule
+        type: string
+        default: 'PCB-workflows'
+      kibot-config:
+        description: File (within project repo) containing board-specific kibot config (can be empty file)
+        type: string
+        default: 'kibot/kibot-project-config.yaml'
+      changelog-file:
+        description: File (within project repo) containing changelog
+        type: string
+        default: 'Changelog.md'
+
+env:
+  OUT_DIR: kibot-output
+  # This duplicates the release directory name because of https://stackoverflow.com/a/72209113/740048
+  RELEASE_BODY: release-body-text.md
+  IS_TAG_PUSH: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
+  IS_PULL_REQUEST: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build_and_publish:
+    runs-on: ubuntu-latest
+    # This uses a development version instead of "latest" (currently 1.6.1) to fix
+    # https://github.com/INTI-CMNB/KiBot/issues/412 and
+    # https://github.com/INTI-CMNB/KiBot/issues/437 and
+    # https://github.com/INTI-CMNB/KiBot/issues/438
+    container: docker://ghcr.io/inti-cmnb/kicad7_auto_full:dev
+    steps:
+      - name: Generate token
+        # This use a Github App private key to request an installation
+        # token for read-only access to the organization's private
+        # repositories. This token is then used in the checkout step
+        # (but not in subsequent steps that create releases and upload
+        # assets, those still use the default token that has write
+        # access to the current repository).
+        # See https://github.com/actions/checkout/issues/287#issuecomment-1315458401
+        # for more background and how to set this up.
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.REPO_READONLY_GITHUB_APP_ID }}
+          private_key: ${{ secrets.REPO_READONLY_GITHUB_APP_KEY }}
+          # Limit permissions to what we need (these need to be
+          # configured in the app settings as well).
+          permissions: >-
+            {"contents": "read"}
+
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          token: ${{ steps.generate_token.outputs.token }}
+          # Do a full checkout instead of shallow, so we can diff
+          # against the previous release.
+          fetch-depth: 0
+
+      # TODO: Enable (and test!) this check once github.job_workflow_sha
+      # is fixed. See https://github.com/actions/runner/issues/2417
+      # - name: Check submodule commit
+      #   run: |
+      #     SUBMODULE_SHA="$(git ls-tree HEAD "${{ inputs.workflows-subdir }}" --format '%(objectname)')"
+      #     WORKFLOW_SHA="${{ github.job_workflow_sha }}"
+      #     if [ "$SUBMODULE_SHA" == "$WORKFLOW_SHA" ]; then
+      #       echo "Submodule revision matches workflow revisions ($SUBMODULE_SHA)"
+      #     else
+      #       echo "Submodule revision ($SUBMODULE_SHA) does no match workflow revision ($WORKFLOW_REVISION), aborting"
+      #       echo "Update workflow in project repo to fix this"
+      #       exit 1
+      #     fi
+
+      - name: Work around PCB variable cache issue
+        # This works around a problem in KiCad where text variables are
+        # cached in the kicad_pcb file and thus not updated. This step
+        # ensures the tags are stripped from the kicad_pcb file, but
+        # uses a git smudge/clean filter so the change does not show up
+        # in git diff / git describe output.
+        # See https://github.com/INTI-CMNB/KiBot/issues/441
+        run: |
+          # Set up the smudge and clean filters. Just a smudge is not
+          # sufficient, since then the smudge changes are still shown in
+          # git status/git describe. The clean filter just restores the
+          # original, as-is, so this only works because we never need to
+          # actually commit changes...
+          git config --local filter.strip-variables-cache.smudge "tee '%f-smudge-backup' | sed '/^ *(property \"\\(BOARD_REVISION\\|COMPONENTS_DATE\\|GIT_REVISION_INFO\\|VARIANT\\)\" /d'"
+          git config --local filter.strip-variables-cache.clean "cat '%f-smudge-backup'"
+          echo "*.kicad_pcb filter=strip-variables-cache" >> .git/info/attributes
+          # Remove the pcb file to force a checkout
+          rm "${{ inputs.project-subdir }}"/*.kicad_pcb
+          git checkout HEAD .
+
+      - name: Run kibot
+        working-directory: ${{ inputs.project-subdir }}
+        shell: bash # for pipefail
+        run: |
+          # Cannot use github.workspace in container, see https://github.com/actions/runner/issues/2058
+          CFG_DIR="$GITHUB_WORKSPACE/${{ inputs.workflows-subdir }}/kibot"
+          OUT_DIR_ABS="$GITHUB_WORKSPACE/$OUT_DIR"
+          PROJECT_CONFIG="$GITHUB_WORKSPACE/${{ inputs.kibot-config }}"
+          mkdir -p "$OUT_DIR_ABS"
+
+          # Prevent the pipe-to-tee from eating kibot errors
+          set -o pipefail
+
+          (
+            run_kibot() {
+              echo ---
+              echo Running: kibot -d "$OUT_DIR_ABS" -E "KIBOT_PROJECT_CONFIG=$PROJECT_CONFIG" "$@"
+
+              kibot -d "$OUT_DIR_ABS" -E "KIBOT_PROJECT_CONFIG=$PROJECT_CONFIG" "$@"
+            }
+
+            # Run main kibot flow
+            run_kibot -c "$CFG_DIR/workflow-once.yaml"
+
+            # Generate variant-specific outputs
+            # TODO: Get variants more cleanly, this parses debug output...
+            # See https://github.com/INTI-CMNB/KiBot/issues/434
+            VARIANTS=$(run_kibot -s all --invert -v -c "$CFG_DIR/workflow-foreach-variant.yaml" 2>&1 | sed -n 's/DEBUG:Parsing variant `\(.*\)`.*/\1/p')
+            if [ -n "$VARIANTS" ]; then
+              for VARIANT in $VARIANTS; do
+                run_kibot -c "$CFG_DIR/workflow-foreach-variant.yaml" -g "variant=$VARIANT"
+              done
+            fi
+
+            # Only download datasheets for tags
+            if [ "${{ github.event_name }}" == "tags" ]; then
+              run_kibot -s all -c "$CFG_DIR/workflow-once.yaml" download_datasheets
+            fi
+
+            # Generate diffs
+            if [ "$IS_TAG_PUSH" == "true" ]; then
+              COMPARE_COMMIT="$(git describe --tags --abbrev=0 HEAD^ || true)"
+              DIFF_NAME=Since-prev-release
+            elif [ "$IS_PULL_REQUEST" == "true" ]; then
+              # Figure out the branchpoint to generate a diff for the
+              # PR, without including changes in the base branch since
+              # then.
+              COMPARE_COMMIT="$(git merge-base "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}")"
+              DIFF_NAME=Commits-in-PR
+            else
+              COMPARE_COMMIT=HEAD^
+              DIFF_NAME=Last-commit
+            fi
+
+            if [ -n "$COMPARE_COMMIT" ]; then
+              run_kibot -c "$CFG_DIR/workflow-once.yaml" -E "DIFF_OLD_COMMIT=$COMPARE_COMMIT" diff_sch_HEAD_since_specific_commit diff_pcb_since_specific_commit
+              mv "$OUT_DIR_ABS/Diff/Since-commit" "$OUT_DIR_ABS/Diff/$DIFF_NAME"
+            fi
+
+            # Run checks last, to still get outputs even for
+            # work-in-progress commits with failing checks
+            if [ "$IS_TAG_PUSH" == "true" ]; then
+              PREV_BOARD_REV=$(echo "$COMPARE_COMMIT" | cut -d/ -f 2 --only-delimited)
+              NEW_BOARD_REV=$(echo "$GITHUB_REF_NAME" | cut -d/ -f 2 --only-delimited)
+
+              if [ -n "$COMPARE_COMMIT" -a \( -z "$PREV_BOARD_REV" -o -z "$NEW_BOARD_REV" \) ]; then
+                echo "---"
+                echo "Previous tag ($COMPARE_COMMIT) has no board version, assuming legacy tag, skipping zone fill/board change check."
+                CHECK_OPTIONS=()
+              elif [ -z "$COMPARE_COMMIT" -o "$PREV_BOARD_REV" != "$NEW_BOARD_REV" ]; then
+                echo "---"
+                echo "Board version changed (or first tag), checking zonefills are up-to-date."
+                CHECK_OPTIONS=(check_outdated_zonefills show_outdated_zonefills)
+              else
+                echo "Board version unchanged, checking board was unchanged."
+                CHECK_OPTIONS=(-E "DIFF_OLD_COMMIT=$COMPARE_COMMIT" check_board_unchanged show_board_unchanged)
+              fi
+            elif ! run_kibot -c "$CFG_DIR/workflow-checks.yaml" -s all -E "DIFF_OLD_COMMIT=$COMPARE_COMMIT" check_board_copper_unchanged; then
+              echo "---"
+              echo "Board copper layers changed, checking zonefills are up-to-date."
+              CHECK_OPTIONS=(check_outdated_zonefills show_outdated_zonefills)
+            else
+              echo "---"
+              echo "Board copper layers unchanged, not running any extra checks"
+              CHECK_OPTIONS=()
+            fi
+
+            run_kibot -c "$CFG_DIR/workflow-checks.yaml" "${CHECK_OPTIONS[@]}"
+
+          ) 2>&1 | tee "$OUT_DIR_ABS/kibot_output.txt"
+
+      # Work around https://github.com/INTI-CMNB/KiDiff/pull/6
+      - name: Workaround for unneeded leftover diff PNGs
+        if: ${{ success() || failure() }}
+        run: |
+          rm -f "$OUT_DIR/Diff/"*/*.png
+
+      - name: Upload result
+        uses: actions/upload-artifact@v3
+        # Run even if kibot failed (e.g. because of outdated zone fills)
+        # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
+        if: ${{ success() || failure() }}
+        with:
+          name: output
+          path: ${{ env.OUT_DIR }}
+
+      - name: Generate changelog
+        if: env.IS_TAG_PUSH == 'true'
+        run: |
+          # This assumes the first line is the title, followed by
+          # a header underline (===) and the changelog body. Then
+          # everything up to including the next header is selected,
+          # using head to remove the next header again.
+          (echo -n "RELEASE_TITLE="; head -n 1 "${{ inputs.changelog-file }}") > "${GITHUB_ENV}"
+          sed -n '3,/^===/p' "${{ inputs.changelog-file }}" | head -n -2 > "${RELEASE_BODY}"
+
+      - name: Zip subdirectories
+        if: env.IS_TAG_PUSH == 'true'
+        working-directory: ${{ env.OUT_DIR}}
+        run: |
+          apt update && apt install zip
+          for f in *; do
+            if [ -d "$f" ]; then
+              zip -r "$f.zip" "$f"
+              rm -rf "$f"
+            fi
+          done
+
+      - name: Create release
+        if: env.IS_TAG_PUSH == 'true'
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "${{ env.OUT_DIR }}/*,${{inputs.changelog-file}}"
+          name: ${{ env.RELEASE_TITLE }}
+          bodyFile: ${{ env.RELEASE_BODY }}
+          artifactErrorsFailBuild: true

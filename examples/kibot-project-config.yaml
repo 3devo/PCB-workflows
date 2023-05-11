@@ -1,0 +1,24 @@
+# This is the project-specific kibom config. Here you can override
+# options (e.g. global or preflight), define additional outputs, replace
+# outputs (define a new one and use disable_run_by_default to disable
+# the original) or define variants used by the schematic.
+
+# File cannot be empty, so define something
+globals: {}
+
+#preflight:
+  # TODO: Fix DRC errors (or mark them ignored inside KiCad) so we can enable this.
+  # See also https://github.com/INTI-CMNB/KiBot/issues/374
+  #run_drc: false
+
+# Variant names use [], for nicer display on the title sheet
+# variants:
+#  - name: '[Shredder]'
+#    type: kibom
+#    file_id: _SR
+#    variant: SR
+#
+#  - name: '[Granulator]'
+#    type: kibom
+#    file_id: _GR
+#    variant: GR

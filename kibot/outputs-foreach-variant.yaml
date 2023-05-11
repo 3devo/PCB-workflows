@@ -1,0 +1,50 @@
+# This file defines the outputs that change per variant (i.e. need
+# to be run once per variant).
+
+# TODO: Generate BOM
+# TODO: Generate PnP file
+outputs:
+- name: basic_boardview
+  comment: Board view export
+  type: boardview
+  dir: Boardview
+
+- name: pdf_sch_print
+  comment: Schematic in PDF format
+  type: pdf_sch_print
+  dir: .
+
+- name: render_3d_top
+  comment: 3D view from top
+  type: render_3d
+  dir: 3D
+  options:
+    width: 1920
+    height: 1080
+    ray_tracing: true
+    orthographic: true
+- name: render_3d_30deg
+  comment: 3D view from 30 degrees
+  type: render_3d
+  dir: 3D
+  output_id: 30deg
+  options:
+    width: 1920
+    height: 1080
+    ray_tracing: true
+    rotate_x: 3
+    rotate_z: -2
+- name: render_3d_bottom
+  comment: 3D view from bottom
+  type: render_3d
+  dir: 3D
+  options:
+    width: 1920
+    height: 1080
+    ray_tracing: true
+    orthographic: true
+    view: bottom
+- name: basic_step
+  comment: 3D model in STEP format
+  type: step
+  dir: 3D
