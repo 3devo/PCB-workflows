@@ -1,0 +1,56 @@
+# This file defines is the top-level config intended to be ran from
+# a workflow to perform sanity checks on a commit.
+kibot:
+  version: 1
+
+import:
+ - file: base.yaml
+ # Import these preflights from a file, so the project config can
+ # override them
+ - file: preflight-checks.yaml
+ - file: "@KIBOT_PROJECT_CONFIG@"
+
+preflight:
+  # The diff outputs require the check_zone_fills preflight (which
+  # forces a zone fill, it does not actually check anything).
+  # Defining it here prevents overriding it from the project config.
+  check_zone_fills: true
+
+# For checking zone fills, this defines diff outputs that diff the
+# current file on-disk against the loaded file, and fails if it finds
+# (significant) differences.  Because the loaded file has been zone
+# filled by kibot, this essentially fails when the commit was made with
+# outdated zone fills, so it can be used as a sanity check for commits.
+#
+# This is a bit of a roundabout way, but it works well enough. See also
+# https://github.com/INTI-CMNB/KiBot/issues/431#issuecomment-1545752152
+
+outputs:
+# This generates a diff pdf so you can see what is different
+- name: 'show_outdated_zonefills'
+  comment: "Show differences for the zone fill"
+  type: diff
+  layers: copper
+  dir: Diff/Zone-fill-check
+  options:
+    cache_dir: .cache
+    # The default value is the current file, so leave this empty
+    old: ''
+    old_type: file
+    new_type: current
+    only_different: true
+
+# This uses stat mode to fail above a diff threshold
+- name: 'check_outdated_zonefills'
+  comment: "Check the zone fill doesn't generate important changes"
+  type: diff
+  layers: copper
+  dir: Diff/Zone-fill-check
+  options:
+    cache_dir: .cache
+    diff_mode: stats
+    threshold: 100
+    # The default value is the current file, so leave this empty
+    old: ''
+    old_type: file
+    new_type: current

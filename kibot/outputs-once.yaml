@@ -1,0 +1,114 @@
+# This file defines the outputs that do not change per variant (i.e. need
+# to be run only once when variants are involved).
+
+# TODO: Add gerbers and drill files
+outputs:
+- name: download_datasheets
+  comment: Download the datasheets
+  type: download_datasheets
+  dir: Datasheets
+  # This has significant overhead, so only run this when requested
+  run_by_default: false
+
+- name: report_full
+  comment: Information about the board
+  type: report
+  options:
+    # "report" is not terribly useful in the filename, so put in something more clear
+    output: '%f-boardinfo%v.%x'
+    template: full_SVG
+
+- name: basic_info
+  comment: Information about the run
+  type: info
+  dir: .
+  options:
+    # "info" is not terribly useful in the filename, so put in something more clear
+    output: '%f-kibot-run-info%v.%x'
+
+- name: pdf_pcb_print
+  comment: PCB
+  type: pcb_print
+  dir: .
+  options:
+    format: PDF
+    pages:
+    - layers:
+      - layer: F.Cu
+      - layer: F.Mask
+        color: '#14332440'
+      - layer: F.Paste
+      - layer: F.Silkscreen
+      - layer: Edge.Cuts
+      - layer: User.Drawings
+      - layer: User.Comments
+      sheet: Front copper
+    - layers:
+      - layer: B.Cu
+      - layer: B.Mask
+        color: '#14332440'
+      - layer: B.Silkscreen
+      - layer: Edge.Cuts
+      - layer: User.Drawings
+      - layer: User.Comments
+      mirror: true
+      sheet: Bottom copper
+    - layers:
+      - layer: B.Courtyard
+      - layer: Edge.Cuts
+      - layer: User.Drawings
+      - layer: User.Comments
+      mirror: true
+      sheet: Bottom courtyard area
+    - layers:
+      - layer: F.Courtyard
+      - layer: Edge.Cuts
+      - layer: User.Drawings
+      - layer: User.Comments
+      sheet: Front courtyard area
+    - layers:
+      - layer: B.Fab
+      - layer: Edge.Cuts
+      - layer: User.Drawings
+      - layer: User.Comments
+      mirror: true
+      sheet: Bottom documentation
+    - layers:
+      - layer: F.Fab
+      - layer: Edge.Cuts
+      - layer: User.Drawings
+      - layer: User.Comments
+      sheet: Front documentation
+
+- name: basic_svg
+  comment: Individual layers in SVG format
+  type: svg
+  dir: PCB/Layers
+  layers: all
+
+- name: svg_top_view
+  comment: Rendered empty board, top SVG
+  type: pcbdraw
+  dir: PCB/Images
+  options:
+    format: svg
+- name: png_top_view
+  comment: Rendered empty board, top PNG
+  type: pcbdraw
+  dir: PCB/Images
+  options:
+    format: png
+- name: svg_bottom_view
+  comment: Rendered empty board, bottom SVG
+  type: pcbdraw
+  dir: PCB/Images
+  options:
+    format: svg
+    bottom: true
+- name: png_bottom_view
+  comment: Rendered empty board, bottom PNG
+  type: pcbdraw
+  dir: PCB/Images
+  options:
+    format: png
+    bottom: true

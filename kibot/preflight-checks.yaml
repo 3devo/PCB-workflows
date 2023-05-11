@@ -1,0 +1,6 @@
+# This file defines the default preflight checks
+
+preflight:
+  # Run these checks as well
+  run_drc: true
+  run_erc: true

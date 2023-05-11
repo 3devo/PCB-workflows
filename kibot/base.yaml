@@ -1,0 +1,41 @@
+# This file defines the basics that should always be used
+
+global:
+  # Make sure that set_text_variables is only applied during the kibot
+  # run, but does not pollute the working copy afterwards
+  restore_project: true
+
+preflight:
+  # TODO: Actually *check* zone fills (to error out if zones were not
+  # filled before committing). This just fills all zones before
+  # generating output (which is better than having outdated fills,
+  # though).
+  # See https://github.com/INTI-CMNB/KiBot/issues/431
+  check_zone_fills: true
+
+  set_text_variables:
+    - name: BOARD_REVISION
+      # Take the board revision part of the tag, and check for modifications since
+      command: |
+        TAG=$(git describe --tags --abbrev=0)
+        echo -n $TAG | awk -F/ '{printf($2)}'
+        if ! git diff --quiet ${TAG}; then
+          echo " — modified"
+        fi
+    - name: COMPONENTS_DATE
+      command: |
+        # Take the components part of the tag, and check for modifications since
+        TAG=$(git describe --tags --abbrev=0)
+        echo -n $TAG | awk -F/ '{printf($3)}'
+        if ! git diff --quiet ${TAG}; then
+          echo " — modified"
+        fi
+    - name: GIT_REVISION_INFO
+      # Just include complete info on where this was generated from
+      before: "Generated from git "
+      command: git describe --tags --all --long --always --dirty
+
+    - name: VARIANT
+      # Put the current variant in a text var, so it can be referenced
+      # from our custom sheet
+      text: "%V"

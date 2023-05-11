@@ -1,0 +1,103 @@
+name: Publish KiCad release files on tag
+
+on:
+  workflow_call:
+    inputs:
+      project-dir:
+        description: Directory containing kicad project files
+        type: string
+        default: 'PCB'
+        #   secrets:
+        #     app-id:
+        #       description: Github app id for accessing private submodules
+        #       required: true
+        #     app-key:
+        #       description: Github app key for accessing private submodules
+        #       required: true
+
+jobs:
+  build_and_publish_it:
+    runs-on: ubuntu-latest
+    # This uses a 1.6.2 instead of latest (currently 1.6.1) to fix
+    # https://github.com/INTI-CMNB/KiBot/issues/412
+    container: docker://ghcr.io/inti-cmnb/kicad7_auto_full:1.6.2
+
+    steps:
+      - name: test
+        run: echo ${{toJson(env)}}
+      - name: Generate token
+        # This use a Github App private key to request an installation
+        # token for read-only access to the organization's private
+        # repositories. This token is then used in the checkout step
+        # (but not in subsequent steps that create releases and upload
+        # assets, those still use the default token that has write
+        # access to the current repository).
+        # See https://github.com/actions/checkout/issues/287#issuecomment-1315458401
+        # for more background and how to set this up.
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.REPO_READONLY_GITHUB_APP_ID }}
+          private_key: ${{ secrets.REPO_READONLY_GITHUB_APP_KEY }}
+          # Limit permissions to what we need (these need to be
+          # configured in the app settings as well).
+          permissions: >-
+            {"contents": "read"}
+
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          token: ${{ steps.generate_token.outputs.token }}
+
+      - name: Parse tag
+        run: |
+          BOARD=$(basename PCB/*.kicad_pro .kicad_pro)
+          (
+            echo "BOARD=$BOARD"
+            # Tag should be something like Fooboard-V1.0-2000-02-01
+            echo "BOARD_REVISION=$(echo $GITHUB_REF_NAME | cut -d- -f 2)"
+            echo "COMPONENTS_DATE=$(echo $GITHUB_REF_NAME | cut -d- -f 3-)"
+            echo "GIT_REVISION_INFO=Built from git $GITHUB_REF_TYPE $GITHUB_REF_NAME ($(git describe --always))"
+            echo "SCHEMATIC_FILE=PCB/$BOARD.kicad_sch"
+            echo "BOARD_FILE=PCB/$BOARD.kicad_pcb"
+            echo "KIBOT_CONFIG=.github/workflows/release.kibot.yaml"
+          ) >> "$GITHUB_ENV"
+
+      # TODO: Variants
+      #- uses: INTI-CMNB/KiBot@v2_k7
+      #  with:
+      #    config: ${{env.KIBOT_CONFIG}}
+      #    dir: output
+      #    schema: ${{env.SCHEMATIC_FILE}}
+      #    board: ${{env.BOARD_FILE}}
+      #    additional_args: "-E COMPONENTS_DATE=\"${{env.COMPONENTS_DATE}}\" -E BOARD_REVISION=\"${{env.BOARD_REVISION}}\" -E GIT_REVISION_INFO=\"${{env.GIT_REVISION_INFO}}\""
+
+      - name: Run kibot
+        working-directory: PCB
+        run: |
+          kibot -c ../PCB-workflows/kibot/run-release.yaml
+
+#       uses: docker://ghcr.io/inti-cmnb/kicad7_auto_full:latest
+#       with:
+#         entrypoint: kibot
+#
+#     - name: Run kibot
+#       uses: docker://ghcr.io/inti-cmnb/kicad7_auto_full:latest
+#       with:
+#         entrypoint: ["kibot", "-c" "${{ github.action_path }}/kibot/run-release.yaml"]
+#
+#     - name: Run kibot
+#       uses: docker://ghcr.io/inti-cmnb/kicad7_auto_full:latest
+#       with:
+#         args: "cd PCB && kibot -c \"${{ github.action_path }}/kibot/run-release.yaml\""
+#
+#     - name: Run kibot
+#       uses: docker://ghcr.io/inti-cmnb/kicad7_auto_full:latest
+#       with:
+#         entrypoint: "cd PCB && kibot -c \"${{ github.action_path }}/kibot/run-release.yaml\""
+#
+      - name: upload results
+        uses: actions/upload-artifact@v2
+        with:
+          name: output
+          path: PCB/kibot-output

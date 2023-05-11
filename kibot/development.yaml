@@ -1,0 +1,16 @@
+# This file is the config intended to be used locally during
+# development, to be imported from a config.kibot.yaml that lives
+# alongside the kicad project files.
+#
+# This file does not import the project config, since we do not want to
+# hardcode the path, so the project-specific config.kibom.yaml that
+# imports this file should also import the project config.
+
+global:
+  out_dir: kibot-output
+
+import:
+ - file: base.yaml
+ - file: outputs-once.yaml
+ - file: outputs-foreach-variant.yaml
+ - file: outputs-diffs.yaml

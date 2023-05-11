@@ -1,0 +1,87 @@
+# This file defines the diff outputs. These are disabled by default, and
+# only run if one is selected on the kibot commandline explicitly
+
+outputs:
+- name: diff_pcb_uncommitted
+  comment:  PCB diff of uncommited changes against current HEAD
+  type: diff
+  dir: Diff/Uncommited
+  layers: all
+  run_by_default: false
+  options:
+    old: HEAD
+    old_type: git
+    only_different: true
+- name: diff_pcb_last_commit
+  comment:  PCB diff of uncommited changes against HEAD^ (so uncommitted plus last commit)
+  type: diff
+  dir: Diff/Last-commit
+  layers: all
+  run_by_default: false
+  extends: diff_pcb_uncommitted
+  options:
+    old: HEAD^
+- name: diff_pcb_since_last_release
+  # Note: This might not currently (kibot 1.6.2) work as expected, see
+  # https://github.com/INTI-CMNB/KiBot/issues/430
+  comment:  PCB diff of uncommited changes against last release (so uncommitted plus all commits since last release)
+  type: diff
+  dir: Diff/Since-last-release
+  layers: all
+  run_by_default: false
+  extends: diff_pcb_uncommitted
+  options:
+    old: KIBOT_TAG-0
+- name: diff_pcb_since_specific_commit
+  comment:  PCB diff of uncommited changes since given commit
+  type: diff
+  dir: Diff/Since-commit
+  layers: all
+  run_by_default: false
+  extends: diff_pcb_uncommitted
+  options:
+    # Should be specified on the commandline with -E
+    old: "@DIFF_OLD_COMMIT@"
+
+- name: diff_sch_uncommitted
+  comment:  Schematic diff of uncommited changes against current HEAD
+  type: diff
+  dir: Diff/Uncommited
+  layers: all
+  run_by_default: false
+  options:
+    old: HEAD
+    old_type: git
+    only_different: true
+    pcb: false
+    cache_dir: /tmp/kicad-diff-cache
+- name: diff_sch_last_commit
+  comment:  Schematic diff of uncommited changes against HEAD^ (so uncommitted plus last commit)
+  type: diff
+  dir: Diff/Last-commit
+  layers: all
+  run_by_default: false
+  extends: diff_sch_uncommitted
+  options:
+    old: HEAD^
+- name: diff_sch_since_last_release
+  # Note: This might not currently (kibot 1.6.2) work as expected, see
+  # https://github.com/INTI-CMNB/KiBot/issues/430
+  comment:  Schematic diff of uncommited changes against last release (so uncommitted plus all commits since last release)
+  type: diff
+  dir: Diff/Since-last-release
+  layers: all
+  run_by_default: false
+  extends: diff_sch_uncommitted
+  options:
+    old: KIBOT_TAG-0
+- name: diff_sch_since_specific_commit
+  comment:  Schematic diff of uncommited changes since given commit
+  type: diff
+  dir: Diff/Since-commit
+  layers: all
+  run_by_default: false
+  extends: diff_sch_uncommitted
+  options:
+    # Should be specified on the commandline with -E
+    old: "@DIFF_OLD_COMMIT@"

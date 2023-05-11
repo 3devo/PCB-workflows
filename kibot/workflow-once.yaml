@@ -1,0 +1,12 @@
+# This file is the top-level config intended to be ran from a workflow
+# (passing any needed variables with -E), once without any variant
+# passed.
+kibot:
+  version: 1
+
+import:
+ - file: base.yaml
+ - file: outputs-once.yaml
+ - file: outputs-foreach-variant.yaml
+ - file: outputs-diffs.yaml
+ - file: "@KIBOT_PROJECT_CONFIG@"
