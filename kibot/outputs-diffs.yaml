@@ -13,7 +13,7 @@ outputs:
     old_type: git
     only_different: true
 - name: diff_pcb_last_commit
-  comment:  PCB diff of uncommited changes against HEAD^ (so uncommitted plus last commit)
+  comment:  PCB diff HEAD against HEAD^ (so contents of last commit)
   type: diff
   dir: Diff/Last-commit
   layers: all
@@ -21,24 +21,26 @@ outputs:
   extends: diff_pcb_uncommitted
   options:
     old: HEAD^
+    new_type: git
+    new: HEAD
 - name: diff_pcb_since_last_release
   # Note: This might not currently (kibot 1.6.2) work as expected, see
   # https://github.com/INTI-CMNB/KiBot/issues/430
-  comment:  PCB diff of uncommited changes against last release (so uncommitted plus all commits since last release)
+  comment:  PCB diff of HEAD against last release (so all committed changes since last release)
   type: diff
   dir: Diff/Since-last-release
   layers: all
   run_by_default: false
-  extends: diff_pcb_uncommitted
+  extends: diff_pcb_last_commit
   options:
     old: KIBOT_TAG-0
 - name: diff_pcb_since_specific_commit
-  comment:  PCB diff of uncommited changes since given commit
+  comment:  PCB diff of HEAD against specific commit (so all committed changes since that commit)
   type: diff
   dir: Diff/Since-commit
   layers: all
   run_by_default: false
-  extends: diff_pcb_uncommitted
+  extends: diff_pcb_last_commit
   options:
     # Should be specified on the commandline with -E
     old: "@DIFF_OLD_COMMIT@"
@@ -55,7 +57,7 @@ outputs:
     only_different: true
     pcb: false
 - name: diff_sch_last_commit
-  comment:  Schematic diff of uncommited changes against HEAD^ (so uncommitted plus last commit)
+  comment:  PCB diff HEAD against HEAD^ (so contents of last commit)
   type: diff
   dir: Diff/Last-commit
   layers: all
@@ -63,51 +65,26 @@ outputs:
   extends: diff_sch_uncommitted
   options:
     old: HEAD^
+    new_type: git
+    new: HEAD
 - name: diff_sch_since_last_release
   # Note: This might not currently (kibot 1.6.2) work as expected, see
   # https://github.com/INTI-CMNB/KiBot/issues/430
-  comment:  Schematic diff of uncommited changes against last release (so uncommitted plus all commits since last release)
+  comment:  PCB diff of HEAD against last release (so all committed changes since last release)
   type: diff
   dir: Diff/Since-last-release
   layers: all
   run_by_default: false
-  extends: diff_sch_uncommitted
+  extends: diff_sch_last_commit
   options:
     old: KIBOT_TAG-0
 - name: diff_sch_since_specific_commit
-  comment:  Schematic diff of uncommited changes since given commit
+  comment:  PCB diff of HEAD against specific commit (so all committed changes since that commit)
   type: diff
   dir: Diff/Since-commit
   layers: all
   run_by_default: false
-  extends: diff_sch_uncommitted
+  extends: diff_sch_last_commit
   options:
     # Should be specified on the commandline with -E
     old: "@DIFF_OLD_COMMIT@"
-
-# These versions diffs HEAD instead of current, to prevent running into
-# https://github.com/INTI-CMNB/KiBot/issues/438. We can revert to the
-# versions above if this is fixed in kibot.
-# This is intended only for workflows, where we know current and HEAD
-# are the same anyway.
-- name: diff_sch_HEAD_last_commit
-  comment:  Schematic diff of uncommited changes against HEAD^ (so uncommitted plus last commit)
-  type: diff
-  dir: Diff/Last-commit
-  layers: all
-  run_by_default: false
-  extends: diff_sch_uncommitted
-  options:
-    old: HEAD^
-- name: diff_sch_HEAD_since_specific_commit
-  comment:  Schematic diff of HEAD since given commit
-  type: diff
-  dir: Diff/Since-commit
-  layers: all
-  run_by_default: false
-  extends: diff_sch_uncommitted
-  options:
-    # Should be specified on the commandline with -E
-    old: "@DIFF_OLD_COMMIT@"
-    new: HEAD
-    new_type: git

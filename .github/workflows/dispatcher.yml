@@ -156,7 +156,7 @@ jobs:
             fi
 
             if [ -n "$COMPARE_COMMIT" ]; then
-              run_kibot -c "$CFG_DIR/workflow-once.yaml" -E "DIFF_OLD_COMMIT=$COMPARE_COMMIT" diff_sch_HEAD_since_specific_commit diff_pcb_since_specific_commit
+              run_kibot -c "$CFG_DIR/workflow-once.yaml" -E "DIFF_OLD_COMMIT=$COMPARE_COMMIT" diff_sch_since_specific_commit diff_pcb_since_specific_commit
               mv "$OUT_DIR_ABS/Diff/Since-commit" "$OUT_DIR_ABS/Diff/$DIFF_NAME"
             fi
 
