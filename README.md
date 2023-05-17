@@ -136,7 +136,8 @@ To update the version of PCB-workflows used by a project, two changes
 must be made:
  - The PCB-footprints submodule must be updated to a newer version.
  - The `.github/workflows/workflow.yml` file must be updated to
-   reference the same version.
+   reference the same version. The `tools/update-workflow-version.sh`
+   script can automatically make this change for you.
 
 These two versions must always be kept synchronized, otherwise workflow
 and kibot configs from different versions might be used, which can cause

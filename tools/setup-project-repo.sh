@@ -68,6 +68,9 @@ cp --interactive "$SUBMODULE_ROOT/examples/gitignore" "$REPO_ROOT/.gitignore"
 mkdir -p "$REPO_ROOT/.github/workflows/"
 cp --interactive "$SUBMODULE_ROOT/examples/workflow.yml" "$REPO_ROOT/.github/workflows/"
 
+# Update SHA in dispatcher
+"$SUBMODULE_ROOT/tools/update-workflow-version.sh"
+
 cp --interactive "$SUBMODULE_ROOT/examples/config.kibot.yaml" "$KICAD_DIR/"
 
 mkdir -p "$REPO_ROOT/kibot"
