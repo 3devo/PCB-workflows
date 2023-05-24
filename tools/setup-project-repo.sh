@@ -48,7 +48,7 @@ SUBMODULE_RELATIVE=$(realpath --relative-to="$KICAD_DIR" "$SUBMODULE_ROOT")
 # searched for are not present with exactly this indentation etc., this
 # will not work.
 sed -i "s#^\(    \"page_layout_descr_file\": \)\"[^\"]*\"#\1\"$SUBMODULE_RELATIVE/sheets/versioned_sheet.kicad_wks\"#" "$KICAD_PRO"
-sed -i 's#^\(  "text_variables": \){}#\1{\n    "BOARD_REVISION": "dev",\n    "COMPONENTS_DATE": "dev",\n    "GIT_REVISION_INFO": "",\n    "VARIANT": ""\n  }#' "$KICAD_PRO"
+sed -i 's#^\(  "text_variables": \){}#\1{\n    "BOARD_REVISION": "dev",\n    "COMPONENTS_DATE": "dev",\n    "GIT_REVISION_INFO": "",\n    "SHEETPATH": "N/A",\n    "VARIANT": ""\n  }#' "$KICAD_PRO"
 
 # Sanity check to see if it worked
 if [ "$(grep "versioned_sheet.kicad_wks\|GIT_REVISION_INFO" "$KICAD_PRO" --count)" -ne 3 ]; then
