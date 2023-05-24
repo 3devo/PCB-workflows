@@ -64,6 +64,7 @@ sed -i '/^ *(date /d;/^ *(rev /d;' "$KICAD_DIR"/*.kicad_pcb "$KICAD_DIR"/*.kicad
 
 # Use --interactive to prompt before overwriting
 cp --interactive "$SUBMODULE_ROOT/examples/gitignore" "$REPO_ROOT/.gitignore"
+cp --interactive "$SUBMODULE_ROOT/examples/gitattributes" "$REPO_ROOT/.gitattributes"
 
 mkdir -p "$REPO_ROOT/.github/workflows/"
 cp --interactive "$SUBMODULE_ROOT/examples/workflow.yml" "$REPO_ROOT/.github/workflows/"

@@ -1,0 +1,4 @@
+# Mark kicad files as text, so git can normalize line endings
+*.kicad_pro text=auto
+*.kicad_pcb text=auto
+*.kicad_sch text=auto
