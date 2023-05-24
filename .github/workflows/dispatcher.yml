@@ -38,7 +38,8 @@ jobs:
     # https://github.com/INTI-CMNB/KiBot/issues/412 and
     # https://github.com/INTI-CMNB/KiBot/issues/437 and
     # https://github.com/INTI-CMNB/KiBot/issues/438 and
-    # https://github.com/INTI-CMNB/KiBot/issues/441
+    # https://github.com/INTI-CMNB/KiBot/issues/441 and
+    # https://github.com/INTI-CMNB/KiBot/issues/434
     container: docker://ghcr.io/inti-cmnb/kicad7_auto_full:dev
     steps:
       - name: Generate token
@@ -107,14 +108,9 @@ jobs:
             run_kibot -c "$CFG_DIR/workflow-once.yaml"
 
             # Generate variant-specific outputs
-            # TODO: Get variants more cleanly, this parses debug output...
-            # See https://github.com/INTI-CMNB/KiBot/issues/434
-            VARIANTS=$(run_kibot -s all --invert -v -c "$CFG_DIR/workflow-foreach-variant.yaml" 2>&1 | sed -n 's/DEBUG:Parsing variant `\(.*\)`.*/\1/p')
-            if [ -n "$VARIANTS" ]; then
-              for VARIANT in $VARIANTS; do
-                run_kibot -c "$CFG_DIR/workflow-foreach-variant.yaml" -g "variant=$VARIANT"
-              done
-            fi
+            kibot --list-variants --only-names | while read -r VARIANT; do
+              run_kibot -c "$CFG_DIR/workflow-foreach-variant.yaml" -g "variant=$VARIANT"
+            done
 
             # Only download datasheets for tags
             if [ "${{ github.event_name }}" == "tags" ]; then
