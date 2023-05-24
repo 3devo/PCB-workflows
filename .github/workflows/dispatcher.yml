@@ -37,7 +37,8 @@ jobs:
     # This uses a development version instead of "latest" (currently 1.6.1) to fix
     # https://github.com/INTI-CMNB/KiBot/issues/412 and
     # https://github.com/INTI-CMNB/KiBot/issues/437 and
-    # https://github.com/INTI-CMNB/KiBot/issues/438
+    # https://github.com/INTI-CMNB/KiBot/issues/438 and
+    # https://github.com/INTI-CMNB/KiBot/issues/441
     container: docker://ghcr.io/inti-cmnb/kicad7_auto_full:dev
     steps:
       - name: Generate token
@@ -80,26 +81,6 @@ jobs:
       #       echo "Update workflow in project repo to fix this"
       #       exit 1
       #     fi
-
-      - name: Work around PCB variable cache issue
-        # This works around a problem in KiCad where text variables are
-        # cached in the kicad_pcb file and thus not updated. This step
-        # ensures the tags are stripped from the kicad_pcb file, but
-        # uses a git smudge/clean filter so the change does not show up
-        # in git diff / git describe output.
-        # See https://github.com/INTI-CMNB/KiBot/issues/441
-        run: |
-          # Set up the smudge and clean filters. Just a smudge is not
-          # sufficient, since then the smudge changes are still shown in
-          # git status/git describe. The clean filter just restores the
-          # original, as-is, so this only works because we never need to
-          # actually commit changes...
-          git config --local filter.strip-variables-cache.smudge "tee '%f-smudge-backup' | sed '/^ *(property \"\\(BOARD_REVISION\\|COMPONENTS_DATE\\|GIT_REVISION_INFO\\|VARIANT\\)\" /d'"
-          git config --local filter.strip-variables-cache.clean "cat '%f-smudge-backup'"
-          echo "*.kicad_pcb filter=strip-variables-cache" >> .git/info/attributes
-          # Remove the pcb file to force a checkout
-          rm "${{ inputs.project-subdir }}"/*.kicad_pcb
-          git checkout HEAD .
 
       - name: Run kibot
         working-directory: ${{ inputs.project-subdir }}
