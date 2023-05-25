@@ -4,3 +4,7 @@ preflight:
   # Run these checks as well
   run_drc: true
   run_erc: true
+  # For DRC, ignore unconnected nets and warnings
+  # TODO: Only ignore warnings (and not unconnected) when kibot allows
+  # separating these. See https://github.com/INTI-CMNB/KiBot/issues/374
+  ignore_unconnected: true

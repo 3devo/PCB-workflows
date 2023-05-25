@@ -6,11 +6,6 @@
 # File cannot be empty, so define something
 globals: {}
 
-#preflight:
-  # TODO: Fix DRC errors (or mark them ignored inside KiCad) so we can enable this.
-  # See also https://github.com/INTI-CMNB/KiBot/issues/374
-  #run_drc: false
-
 # Variant names use [], for nicer display on the title sheet
 # variants:
 #  - name: '[Shredder]'
