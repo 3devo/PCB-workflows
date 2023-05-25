@@ -167,6 +167,9 @@ jobs:
 
             run_kibot -c "$CFG_DIR/workflow-checks.yaml" "${CHECK_OPTIONS[@]}"
 
+            # Remove any empty output directories (e.g. when no
+            # datasheets were listed in the schematic).
+            find "$OUT_DIR_ABS" -depth -type d -exec rmdir --ignore-fail-on-non-empty {} \;
           ) 2>&1 | tee "$OUT_DIR_ABS/kibot_output.txt"
 
       # Work around https://github.com/INTI-CMNB/KiDiff/pull/6
