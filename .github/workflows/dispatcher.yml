@@ -113,7 +113,7 @@ jobs:
             done
 
             # Only download datasheets for tags
-            if [ "${{ github.event_name }}" == "tags" ]; then
+            if [ "$IS_TAG_PUSH" == "true" ]; then
               run_kibot -s all -c "$CFG_DIR/workflow-once.yaml" download_datasheets
             fi
 
