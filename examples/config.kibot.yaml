@@ -1,4 +1,4 @@
-# This file is put alongside the KiCad project files so will can be used
+# This file is put alongside the KiCad project files so it will be used
 # when running `kibot` without any options from this directory.
 kibot:
   version: 1
