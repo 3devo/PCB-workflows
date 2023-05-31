@@ -193,9 +193,11 @@ jobs:
           # This assumes the first line is the title, followed by
           # a header underline (===) and the changelog body. Then
           # everything up to including the next header is selected,
-          # using head to remove the next header again.
+          # using head to remove the next header again. Two empty lines
+          # are added to be removed again if there is no next header
+          # (first release).
           (echo -n "RELEASE_TITLE="; head -n 1 "${{ inputs.changelog-file }}") > "${GITHUB_ENV}"
-          sed -n '3,/^===/p' "${{ inputs.changelog-file }}" | head -n -2 > "${RELEASE_BODY}"
+          (cat "${{ inputs.changelog-file }}"; echo; echo) | sed -n '3,/^===/p' | head -n -2 > "${RELEASE_BODY}"
 
       - name: Zip subdirectories
         if: env.IS_TAG_PUSH == 'true'
