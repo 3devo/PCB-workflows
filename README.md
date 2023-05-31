@@ -4,6 +4,22 @@ workflows around (KiCad) PCB designs within 3devo. This includes
 automation using Github workflows, but also tools for helping the local
 development workflow.
 
+This repository is made public under a creative commons license (see the
+end of this file for details) in the hope that it will be useful to
+others, and to contribute something back to the excellent KiCad
+ecosystem that 3devo is gratefully building upon.
+
+However, this repository is still an internal tool, so it is published
+without any warranties or guarantees about correctness and future update
+might make changes that break usage of this repository. If you want to
+use the scripts in this repository, it is recommended you fork the
+repository and work from your own fork.
+
+If you want to contribute improvements to this repository, you are
+welcome too, but there is no guarantee contributions will be accepted.
+In practice, it would  be best to open up an issue to discuss an
+improvement before you invest time in creating a pull request for it.
+
 ### Setting up a new PCB project repo
 To use this repo in a PCB design repo:
  - Include this repo as a submodule in the PCB project repo (typically
@@ -229,3 +245,16 @@ in the project repository, which is ok).
    .github/workflows/dispatcher.yml once [this github
    bug](https://github.com/actions/runner/issues/2417) is fixed.
  - Maybe add example project to copy design rules from?
+
+# Licensing
+The content of this repository is subject to copyright by 3devo B.V. and
+is licensed under the the Creative Commons CC-BY-SA-4.0 license. Full
+code to the license (including a disclaimer on warranty and liability)
+can be found at: https://creativecommons.org/licenses/by-sa/4.0/legalcode
+
+One exception to this is the `sheets/` subdirectory. Files in there are
+based on work by the KiCad project and licensed under the KiCad
+Libraries license. This is essentially the same CC-BY-SA-4.0 license,
+but with an additional exception waving the attribution and share-alike
+requirements when used as part of an electronic circuit design. For the
+full licensing terms, see: https://gitlab.com/kicad/libraries/kicad-templates/-/blob/master/LICENSE.md
