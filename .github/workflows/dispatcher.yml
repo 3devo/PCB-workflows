@@ -34,13 +34,7 @@ env:
 jobs:
   build_and_publish:
     runs-on: ubuntu-latest
-    # This uses a development version instead of "latest" (currently 1.6.1) to fix
-    # https://github.com/INTI-CMNB/KiBot/issues/412 and
-    # https://github.com/INTI-CMNB/KiBot/issues/437 and
-    # https://github.com/INTI-CMNB/KiBot/issues/438 and
-    # https://github.com/INTI-CMNB/KiBot/issues/441 and
-    # https://github.com/INTI-CMNB/KiBot/issues/434
-    container: docker://ghcr.io/inti-cmnb/kicad7_auto_full:dev
+    container: docker://ghcr.io/inti-cmnb/kicad8_auto_full:latest
     steps:
       - name: Generate token
         # This use a Github App private key to request an installation
