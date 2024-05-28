@@ -23,7 +23,10 @@ improvement before you invest time in creating a pull request for it.
 ### Setting up a new PCB project repo
 To use this repo in a PCB design repo:
  - Include this repo as a submodule in the PCB project repo (typically
-   directly in the root).
+   directly in the root):
+   ```
+   git submodule add https://github.com/3devo/PCB-workflows.git
+   ```
  - Ensure a KiCad project is already created (typically in a `PCB`
    subdirectory).
  - Run `./tools/setup-project-repo.sh /path/to/project.kicad_pro`. This sets
@@ -34,8 +37,8 @@ To use this repo in a PCB design repo:
     - The text variables.
     - The kibot default config file.
     - The kibot project-specific config file.
- - When creating the board layout, use the `${BOARD_REVISION}` text
-   variable on the silkscreen.
+ - When creating the board layout, use the `${BOARD_REVISION}` and
+   `${COMPONENTS_DATE}` text variable on the silkscreen.
 
 ## Using this repository
 
@@ -72,6 +75,9 @@ The tag must contain three parts, separated by slashes. For example:
    the board, and should be bumped whenever any signficant component is
    changed (e.g. bump for IC and transistor changes, no need to bump for
    passive component changes as long as the value remains the same).
+
+   If you do not need the `COMPONENTS_DATE` variable in your schematic
+   versioning, this part can be omitted from the tag.
 
 When creating a tag in this format, the github workflow will
 automatically create a release and attach schematics and other
