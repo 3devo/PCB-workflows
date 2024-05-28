@@ -249,7 +249,7 @@ in the project repository, which is ok).
 # Licensing
 The content of this repository is subject to copyright by 3devo B.V. and
 is licensed under the the Creative Commons CC-BY-SA-4.0 license. Full
-code to the license (including a disclaimer on warranty and liability)
+text of the license (including a disclaimer on warranty and liability)
 can be found at: https://creativecommons.org/licenses/by-sa/4.0/legalcode
 
 One exception to this is the `sheets/` subdirectory. Files in there are
