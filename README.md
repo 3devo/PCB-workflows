@@ -57,7 +57,7 @@ was modified, and the full git version details).
 To create a new PCB design release, put the changes made since the
 previous release in the `Changelog.md` file in the project repository
 (with a header showing the version, separate versions with an empty
-line, see the [example][examples/Changelog.md] file for the required
+line, see the [example](examples/Changelog.md) file for the required
 format), and then tag the commit.
 
 The tag must contain three parts, separated by slashes. For example:
