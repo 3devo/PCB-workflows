@@ -189,6 +189,13 @@ values (that are normally shown in the title block and can be set in
 KiCad using File -> Page Setup...), so those are ignored and should be
 kept empty to prevent confusion.
 
+The default sheet set up by the script contains a 3devo logo for use in
+3devo projects. Alternatively, the
+`sheets/versioned_sheet_no_logo.kicad_wks`file has the logo omitted. To
+use it, reference it in the File -> Page Settings dialog of the
+schematic and PCB editor. If you want to further customize the sheet,
+you can make a copy in your own repository and reference that instead.
+
 ### Workflows
 The project repo contains a small `workflow.yml file`, which calls the
 `dispatcher.yml` workflow that lives in this repository and does the
