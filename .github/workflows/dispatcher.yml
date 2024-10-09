@@ -46,7 +46,7 @@ jobs:
         # See https://github.com/actions/checkout/issues/287#issuecomment-1315458401
         # for more background and how to set this up.
         id: generate_token
-        uses: tibdex/github-app-token@v1
+        uses: tibdex/github-app-token@v2
         env:
           # Cannot reference secret from if directly: https://stackoverflow.com/a/72926257/740048
           REPO_READONLY_GITHUB_APP_ID: ${{ secrets.REPO_READONLY_GITHUB_APP_ID }}
@@ -59,7 +59,7 @@ jobs:
           permissions: >-
             {"contents": "read"}
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           token: ${{ steps.generate_token.outputs.token || github.token }}
@@ -177,7 +177,7 @@ jobs:
           rm -f "$OUT_DIR/Diff/"*/*.png
 
       - name: Upload result
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         # Run even if kibot failed (e.g. because of outdated zone fills)
         # https://stackoverflow.com/questions/62045967/github-actions-is-there-a-way-to-continue-on-error-while-still-getting-correct
         if: ${{ success() || failure() }}
