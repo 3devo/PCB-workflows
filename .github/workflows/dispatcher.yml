@@ -90,6 +90,8 @@ jobs:
           OUT_DIR_ABS="$GITHUB_WORKSPACE/$OUT_DIR"
           PROJECT_CONFIG="$GITHUB_WORKSPACE/${{ inputs.kibot-config }}"
           mkdir -p "$OUT_DIR_ABS"
+          # Workaround until https://github.com/INTI-CMNB/KiBot/pull/756 is merged
+          mkdir -p ~/.config/kicad/8.0/colors
 
           # Prevent the pipe-to-tee from eating kibot errors
           set -o pipefail
