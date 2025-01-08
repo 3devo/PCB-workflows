@@ -26,7 +26,6 @@ on:
 
 env:
   OUT_DIR: kibot-output
-  # This duplicates the release directory name because of https://stackoverflow.com/a/72209113/740048
   RELEASE_BODY: release-body-text.md
   IS_TAG_PUSH: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') }}
   IS_PULL_REQUEST: ${{ github.event_name == 'pull_request' }}
