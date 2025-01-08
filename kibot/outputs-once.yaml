@@ -2,6 +2,14 @@
 # to be run only once when variants are involved).
 
 outputs:
+- name: copy_files
+  comment: Generate project files (with revision included)
+  type: copy_files
+  dir: Project
+  options:
+    files:
+      - source_type: project
+
 - name: download_datasheets
   comment: Download the datasheets
   type: download_datasheets
