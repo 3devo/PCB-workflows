@@ -1,7 +1,6 @@
 # This file defines the outputs that do not change per variant (i.e. need
 # to be run only once when variants are involved).
 
-# TODO: Add gerbers and drill files
 outputs:
 - name: download_datasheets
   comment: Download the datasheets
@@ -25,6 +24,47 @@ outputs:
   options:
     # "info" is not terribly useful in the filename, so put in something more clear
     output: '%f-kibot-run-info%v.%x'
+
+- name: Gerbers
+  comment: Gerbers compatible with JLCPCB
+  type: gerber
+  dir: Gerbers
+  options: &gerber_options
+    exclude_edge_layer: true
+    plot_sheet_reference: false
+    plot_footprint_refs: true
+    plot_footprint_values: true
+    force_plot_invisible_refs_vals: false
+    tent_vias: true
+    use_protel_extensions: true
+    create_gerber_job_file: false
+    disable_aperture_macros: false
+    gerber_precision: 4.6
+    use_gerber_x2_attributes: false
+    use_gerber_net_attributes: false
+    subtract_mask_from_silk: true
+  layers:
+    - copper
+    - F.SilkS
+    - B.SilkS
+    - F.Mask
+    - B.Mask
+    - F.Paste
+    - B.Paste
+    - Edge.Cuts
+
+- name: JLCPCB_drill
+  comment: Drill files compatible with JLCPCB
+  type: excellon
+  dir: Gerbers
+  options:
+    map: gerber
+    pth_and_npth_single_file: false
+    metric_units: true
+    route_mode_for_oval_holes: false
+    use_aux_axis_as_origin: false
+    output: "%f%i.%x"
+    zeros_format: 'DECIMAL_FORMAT'
 
 - name: pdf_pcb_print
   comment: Board layout in PDF format
