@@ -34,7 +34,7 @@ env:
 jobs:
   build_and_publish:
     runs-on: ubuntu-latest
-    container: docker://ghcr.io/inti-cmnb/kicad8_auto_full:latest
+    container: docker://ghcr.io/inti-cmnb/kicad9_auto_full:latest
     steps:
       - name: Generate token
         # This use a Github App private key to request an installation
